@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Conway's Game of Life</title>
+<style>
+  body {
+    font-family: Arial, sans-serif;
+    text-align: center;
+    margin-top: 20px;
+  }
+
+  #grid {
+    display: grid;
+    grid-template-columns: repeat(20, 20px);
+    gap: 2px;
+    justify-content: center;
+    margin: 20px auto;
+  }
+
+  .cell {
+    width: 20px;
+    height: 20px;
+    background-color: #eee;
+    border: 1px solid #ccc;
+    cursor: pointer;
+  }
+
+  .alive {
+    background-color: black;
+  }
+
+  button {
+    margin: 10px;
+    padding: 10px 20px;
+    font-size: 16px;
+  }
+</style>
+</head>
+<body>
+
+<h1>Conway's Game of Life</h1>
+<div id="grid"></div>
+<button id="startBtn">Start</button>
+<button id="stopBtn" disabled>Stop</button>
+<button id="clearBtn">Clear</button>
+
+<script>
+  const numRows = 20;
+  const numCols = 20;
+  let grid = [];
+  let intervalId = null;
+
+  const gridContainer = document.getElementById('grid');
+  const startBtn = document.getElementById('startBtn');
+  const stopBtn = document.getElementById('stopBtn');
+  const clearBtn = document.getElementById('clearBtn');
+
+  // Initialize grid
+  function createGrid() {
+    for (let r = 0; r < numRows; r++) {
+      grid[r] = [];
+      for (let c = 0; c < numCols; c++) {
+        const cell = document.createElement('div');
+        cell.className = 'cell';
+        cell.dataset.row = r;
+        cell.dataset.col = c;
+        cell.addEventListener('click', () => {
+          cell.classList.toggle('alive');
+        });
+        gridContainer.appendChild(cell);
+        grid[r][c] = cell;
+      }
+    }
+  }
+
+  // Get the number of alive neighbors
+  function countNeighbors(row, col) {
+    let count = 0;
+    for (let rOff = -1; rOff <= 1; rOff++) {
+      for (let cOff = -1; cOff <= 1; cOff++) {
+        if (rOff === 0 && cOff === 0) continue;
+        const r = row + rOff;
+        const c = col + cOff;
+        if (r >= 0 && r < numRows && c >= 0 && c < numCols) {
+          if (grid[r][c].classList.contains('alive')) {
+            count++;
+          }
+        }
+      }
+    }
+    return count;
+  }
+
+  // Compute next generation
+  function nextGeneration() {
+    const newStates = [];
+    for (let r = 0; r < numRows; r++) {
+      newStates[r] = [];
+      for (let c = 0; c < numCols; c++) {
+        const alive = grid[r][c].classList.contains('alive');
+        const neighbors = countNeighbors(r, c);
+        if (alive) {
+          // Cell stays alive if 2 or 3 neighbors
+          newStates[r][c] = neighbors === 2 || neighbors === 3;
+        } else {
+          // Dead cell becomes alive if exactly 3 neighbors
+          newStates[r][c] = neighbors === 3;
+        }
+      }
+    }
+
+    // Update grid based on newStates
+    for (let r = 0; r < numRows; r++) {
+      for (let c = 0; c < numCols; c++) {
+        if (newStates[r][c]) {
+          grid[r][c].classList.add('alive');
+        } else {
+          grid[r][c].classList.remove('alive');
+        }
+      }
+    }
+  }
+
+  // Start the simulation
+  function start() {
+    if (!intervalId) {
+      intervalId = setInterval(nextGeneration, 500);
+      startBtn.disabled = true;
+      stopBtn.disabled = false;
+    }
+  }
+
+  // Stop the simulation
+  function stop() {
+    clearInterval(intervalId);
+    intervalId = null;
+    startBtn.disabled = false;
+    stopBtn.disabled = true;
+  }
+
+  // Clear the grid
+  function clearGrid() {
+    for (let r = 0; r < numRows; r++) {
+      for (let c = 0; c < numCols; c++) {
+        grid[r][c].classList.remove('alive');
+      }
+    }
+  }
+
+  // Event listeners
+  document.getElementById('startBtn').addEventListener('click', start);
+  document.getElementById('stopBtn').addEventListener('click', stop);
+  document.getElementById('clearBtn').addEventListener('click', clearGrid);
+
+  // Initialize
+  createGrid();
+</script>
+
+</body>
+</html>
